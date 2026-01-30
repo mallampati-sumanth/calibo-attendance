@@ -12,13 +12,15 @@ class AuthManager {
     bindPasswordToggle() {
         const toggleBtn = document.getElementById('toggle-password');
         const passwordInput = document.getElementById('password');
-        const passwordIcon = document.getElementById('password-icon');
 
-        if (toggleBtn && passwordInput && passwordIcon) {
+        if (toggleBtn && passwordInput) {
             toggleBtn.addEventListener('click', () => {
+                const passwordIcon = toggleBtn.querySelector('i');
                 const isPassword = passwordInput.type === 'password';
                 passwordInput.type = isPassword ? 'text' : 'password';
-                passwordIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+                if (passwordIcon) {
+                    passwordIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+                }
             });
         }
     }
