@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Calibo Attendance Tracker</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Track attendance for KL University and Diet College students">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Calibo Attendance">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="images/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="images/icon-512x512.png">
+    
+    <!-- Stylesheets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-dark" style="background: linear-gradient(135deg, #1e3a8a 0%, #0f1f4d 100%);">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#dashboard">
+                <img src="images/calibo-logo.png" alt="Calibo Logo" style="height: 40px; margin-right: 0.75rem;">
+                <span>Student Attendance Tracker</span>
+            </a>
+            
+            <!-- Desktop Menu -->
+            <div class="d-none d-lg-flex align-items-center">
+                <ul class="navbar-nav me-auto flex-row">
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#dashboard" data-section="dashboard">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#attendance" data-section="attendance">
+                            <i class="bi bi-check2-square"></i> Mark Attendance
+                        </a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#reports" data-section="reports">
+                            <i class="bi bi-graph-up"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="#students" data-section="students">
+                            <i class="bi bi-people"></i> Students
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-nav flex-row">
+                    <span class="nav-link">
+                        <i class="bi bi-person-circle"></i>
+                        <span id="username-display">Admin</span>
+                    </span>
+                    <button class="btn btn-outline-light btn-sm ms-2" id="logout-btn">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="btn btn-outline-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu">
+                <i class="bi bi-list fs-4"></i>
+            </button>
+        </div>
+    </nav>
+    
+    <!-- Mobile Offcanvas Menu -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" style="background: linear-gradient(135deg, #1e3a8a 0%, #0f1f4d 100%); width: 280px;">
+        <div class="offcanvas-header border-bottom border-light border-opacity-25">
+            <h5 class="offcanvas-title text-white d-flex align-items-center">
+                <img src="images/calibo-logo.png" alt="Calibo Logo" style="height: 35px; margin-right: 0.5rem;">
+                <span>Menu</span>
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <ul class="navbar-nav">
+                <li class="nav-item border-bottom border-light border-opacity-10">
+                    <a class="nav-link text-white py-3 px-4" href="#dashboard" data-section="dashboard" data-bs-dismiss="offcanvas">
+                        <i class="bi bi-speedometer2 me-3"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item border-bottom border-light border-opacity-10">
+                    <a class="nav-link text-white py-3 px-4" href="#attendance" data-section="attendance" data-bs-dismiss="offcanvas">
+                        <i class="bi bi-check2-square me-3"></i> Mark Attendance
+                    </a>
+                </li>
+                <li class="nav-item border-bottom border-light border-opacity-10">
+                    <a class="nav-link text-white py-3 px-4" href="#reports" data-section="reports" data-bs-dismiss="offcanvas">
+                        <i class="bi bi-graph-up me-3"></i> Reports
+                    </a>
+                </li>
+                <li class="nav-item border-bottom border-light border-opacity-10">
+                    <a class="nav-link text-white py-3 px-4" href="#students" data-section="students" data-bs-dismiss="offcanvas">
+                        <i class="bi bi-people me-3"></i> Students
+                    </a>
+                </li>
+            </ul>
+            <div class="p-4 mt-auto">
+                <div class="text-white mb-3">
+                    <i class="bi bi-person-circle me-2"></i>
+                    <span id="mobile-username-display">Admin</span>
+                </div>
+                <button class="btn btn-outline-light btn-sm w-100" id="mobile-logout-btn">
+                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container-fluid py-4">
+        <!-- Login Modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-shield-lock me-2"></i>Admin Login
+                        </h5>
+                    </div>
+                    <div class="modal-body">
+                        <form id="login-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            <div class="alert alert-danger d-none" id="login-error"></div>
+                            <button type="submit" class="btn btn-primary w-100" id="login-btn">
+                                <span class="spinner-border spinner-border-sm d-none me-2" id="login-spinner"></span>
+                                Login
+                            </button>
+                        </form>
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i>
+                                Default: admin / admin123
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="content-section">
+            <div class="row mb-4">
+                <div class="col">
+                    <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-outline-primary" id="refresh-dashboard">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b5998 100%);">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Total Students</h5>
+                                    <h2 id="total-students">0</h2>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-people fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Today's Attendance</h5>
+                                    <h2 id="today-attendance">0%</h2>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-check-circle fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Present Today</h5>
+                                    <h2 id="present-today">0</h2>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-person-check fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="card-title">Absent Today</h5>
+                                    <h2 id="absent-today">0</h2>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="bi bi-person-x fs-1"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Attendance Chart -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-graph-up"></i> Attendance Trends (Last 7 Days)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="attendanceChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="bi bi-pie-chart"></i> Batch Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="batch-stats"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Section -->
+        <div id="attendance-section" class="content-section d-none">
+            <div class="row mb-4">
+                <div class="col">
+                    <h2><i class="bi bi-check2-square"></i> Mark Attendance</h2>
+                </div>
+            </div>
+
+            <!-- Attendance Controls -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="bi bi-calendar-check"></i> Mark Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold"><i class="bi bi-calendar3"></i> Select Date</label>
+                            <input type="date" class="form-control" id="attendance-date">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold"><i class="bi bi-building"></i> Filter by College</label>
+                            <select class="form-select" id="attendance-batch">
+                                <option value="">All Colleges</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-lg" id="load-attendance">
+                                    <i class="bi bi-download"></i> Load Students
+                                </button>
+                                <button class="btn btn-success btn-lg" id="save-attendance" disabled>
+                                    <i class="bi bi-save"></i> Save Attendance
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance List -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h5 class="mb-0"><i class="bi bi-people-fill"></i> Student Attendance List</h5>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="input-group" style="width: 300px;">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="attendance-search" placeholder="Search by name or roll number...">
+                            </div>
+                            <div class="attendance-summary" id="attendance-summary"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="attendance-table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Roll Number</th>
+                                    <th>Student Name</th>
+                                    <th>College</th>
+                                    <th>Training Program</th>
+                                    <th style="width: 140px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="select-all-students">
+                                            <label class="form-check-label fw-bold text-white" for="select-all-students">
+                                                Mark Absent
+                                            </label>
+                                        </div>
+                                    </th>
+                                    <th style="width: 180px;">Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-tbody">
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="d-flex flex-column align-items-center text-muted">
+                                            <i class="bi bi-calendar-event" style="font-size: 3rem; opacity: 0.5;"></i>
+                                            <h6 class="mt-3 mb-2">Select Date & Load Students</h6>
+                                            <p>Choose a date and click "Load Students" to begin attendance marking</p>
+                                            <div class="spinner-border d-none" role="status" id="loading-spinner">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            <i class="bi bi-info-circle"></i> 
+                            <span id="student-count">0 students loaded</span>
+                        </div>
+                        <div class="text-muted">
+                            <small>Last updated: <span id="last-updated">Never</span></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reports-section" class="content-section d-none">
+            <div class="row mb-4">
+                <div class="col">
+                    <h2><i class="bi bi-graph-up"></i> Reports & Analytics</h2>
+                </div>
+            </div>
+
+            <!-- Report Navigation -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="report-type" id="monthly-report" value="monthly" checked>
+                        <label class="btn btn-outline-primary" for="monthly-report">
+                            <i class="bi bi-calendar3"></i> Monthly Report
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="report-type" id="daily-report" value="daily">
+                        <label class="btn btn-outline-primary" for="daily-report">
+                            <i class="bi bi-calendar-day"></i> Daily Report
+                        </label>
+                        
+                        <input type="radio" class="btn-check" name="report-type" id="student-report" value="student">
+                        <label class="btn btn-outline-primary" for="student-report">
+                            <i class="bi bi-person"></i> Student History
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Report -->
+            <div id="monthly-report-section" class="report-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-calendar3"></i> Monthly Attendance Report</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Month</label>
+                                <select class="form-select" id="report-month">
+                                    <!-- Will be populated by JS -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">College</label>
+                                <select class="form-select" id="report-college">
+                                    <option value="">All Colleges</option>
+                                    <option value="KL University">KL University</option>
+                                    <option value="Diet College">Diet College</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Batch</label>
+                                <select class="form-select" id="report-batch">
+                                    <option value="">All Batches</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Course</label>
+                                <select class="form-select" id="report-course">
+                                    <option value="">All Courses</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-12 d-flex align-items-end">
+                                <button class="btn btn-primary me-2" id="generate-monthly-report">
+                                    <i class="bi bi-file-earmark-bar-graph"></i> Generate
+                                </button>
+                                <button class="btn btn-success" id="export-monthly-report" disabled>
+                                    <i class="bi bi-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                        <div id="monthly-report-results"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Report -->
+            <div id="daily-report-section" class="report-section d-none">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-calendar-day"></i> Daily Attendance Report</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-2">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-control" id="daily-report-date">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">College</label>
+                                <select class="form-select" id="daily-report-college">
+                                    <option value="">All Colleges</option>
+                                    <option value="KL University">KL University</option>
+                                    <option value="Diet College">Diet College</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Batch</label>
+                                <select class="form-select" id="daily-report-batch">
+                                    <option value="">All Batches</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Course</label>
+                                <select class="form-select" id="daily-report-course">
+                                    <option value="">All Courses</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button class="btn btn-primary me-2" id="generate-daily-report">
+                                    <i class="bi bi-file-earmark-bar-graph"></i> Generate
+                                </button>
+                                <button class="btn btn-success" id="export-daily-report" disabled>
+                                    <i class="bi bi-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                        <div id="daily-report-results"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Report -->
+            <div id="student-report-section" class="report-section d-none">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-person"></i> Individual Student Report</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Student</label>
+                                <select class="form-select" id="report-student">
+                                    <option value="">Select Student</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">From Date</label>
+                                <input type="date" class="form-control" id="student-report-from">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">To Date</label>
+                                <input type="date" class="form-control" id="student-report-to">
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button class="btn btn-primary" id="generate-student-report">
+                                    <i class="bi bi-file-earmark-person"></i> Generate
+                                </button>
+                            </div>
+                        </div>
+                        <div id="student-report-results"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Section -->
+        <div id="students-section" class="content-section d-none">
+            <div class="row mb-4">
+                <div class="col">
+                    <h2><i class="bi bi-people"></i> Student Management</h2>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                        <i class="bi bi-person-plus"></i> Add Student
+                    </button>
+                </div>
+            </div>
+
+            <!-- Students Filter -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="search-students" placeholder="Search by name or roll number...">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filter-batch">
+                                <option value="">All Batches</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="filter-course">
+                                <option value="">All Courses</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-secondary w-100" id="clear-filters">
+                                <i class="bi bi-arrow-clockwise"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Table -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="students-table">
+                            <thead>
+                                <tr>
+                                    <th>Roll No.</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Course</th>
+                                    <th>Batch</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-tbody">
+                                <!-- Will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Student Modal -->
+    <div class="modal fade" id="addStudentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-plus"></i> <span id="modal-title">Add Student</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="student-form">
+                        <input type="hidden" id="student-id">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="student-roll" class="form-label">Roll Number *</label>
+                                <input type="text" class="form-control" id="student-roll" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="student-status" class="form-label">Status</label>
+                                <select class="form-select" id="student-status">
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="student-fname" class="form-label">First Name *</label>
+                                <input type="text" class="form-control" id="student-fname" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="student-lname" class="form-label">Last Name *</label>
+                                <input type="text" class="form-control" id="student-lname" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="student-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="student-email">
+                        </div>
+                        <div class="mb-3">
+                            <label for="student-phone" class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="student-phone">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="student-course" class="form-label">Course</label>
+                                <input type="text" class="form-control" id="student-course">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="student-batch" class="form-label">Batch</label>
+                                <input type="text" class="form-control" id="student-batch">
+                            </div>
+                        </div>
+                        <div class="alert alert-danger d-none" id="student-error"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-student">
+                        <span class="spinner-border spinner-border-sm d-none me-2" id="save-spinner"></span>
+                        Save Student
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="position-fixed top-50 start-50 translate-middle d-none" style="z-index: 9999;">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/attendance.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/students.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registered successfully:', registration.scope);
+                        
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('🔄 New version available! Reload to update.');
+                                }
+                            });
+                        });
+                    })
+                    .catch(error => {
+                        console.log('❌ Service Worker registration failed:', error);
+                    });
+            });
+
+            // Handle install prompt
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                console.log('📱 App can be installed');
+                
+                // Show install button/banner if needed
+                // You can create a custom install UI here
+            });
+
+            window.addEventListener('appinstalled', () => {
+                console.log('✅ App installed successfully');
+                deferredPrompt = null;
+            });
+        }
+    </script>
+</body>
+</html>

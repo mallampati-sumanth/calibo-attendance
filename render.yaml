@@ -1,0 +1,18 @@
+# Render deployment configuration for Flask + Supabase
+services:
+  - type: web
+    name: calibo-attendance-tracker
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --workers 2 --timeout 60 --bind 0.0.0.0:$PORT wsgi:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: SUPABASE_URL
+        value: https://ztfxwdmbseqrfuqyzrpo.supabase.co
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true

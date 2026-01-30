@@ -1,0 +1,17 @@
+# Railway Deployment Configuration
+
+# Build Command (Railway will run this automatically)
+# npm install && npm run init-db
+
+# Start Command
+# npm start
+
+# Environment Variables to set in Railway Dashboard:
+# SESSION_SECRET=your-super-secret-key-change-this-in-production-use-32-chars
+# NODE_ENV=production
+
+# Port (Railway will set this automatically)
+# PORT=${PORT}
+
+# Health check endpoint
+# GET /api/health

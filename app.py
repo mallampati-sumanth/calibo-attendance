@@ -1,0 +1,435 @@
+"""
+Student Attendance Tracker - Flask Backend
+Designed for PythonAnywhere Free Tier with Supabase
+"""
+from flask import Flask, request, jsonify, session, send_from_directory
+from flask_cors import CORS
+from flask_session import Session
+from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import datetime, timedelta
+import os
+from functools import wraps
+from supabase_config import get_supabase_client
+
+app = Flask(__name__, static_folder='frontend', static_url_path='')
+
+# Configuration
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+
+Session(app)
+CORS(app, supports_credentials=True)
+
+# Initialize Supabase client
+supabase = get_supabase_client()
+
+# Authentication decorator
+def require_auth(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_id' not in session:
+            return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+# ============= Routes =============
+
+@app.route('/')
+def index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory(app.static_folder, path)
+
+# ============= Authentication Routes =============
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            return jsonify({'success': False, 'error': 'Username and password required'}), 400
+        
+        # Get admin from Supabase
+        response = supabase.table('admins').select('*').eq('username', username).execute()
+        
+        if not response.data:
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+        
+        admin = response.data[0]
+        
+        # Verify password
+        if not check_password_hash(admin['password_hash'], password):
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+        
+        # Create session
+        session['admin_id'] = admin['id']
+        session['username'] = admin['username']
+        
+        return jsonify({
+            'success': True,
+            'admin': {
+                'id': admin['id'],
+                'username': admin['username'],
+                'email': admin['email']
+            }
+        })
+    
+    except Exception as e:
+        print(f"Login error: {e}")
+        return jsonify({'success': False, 'error': 'Login failed'}), 500
+
+@app.route('/api/auth/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'success': True})
+
+@app.route('/api/auth/check', methods=['GET'])
+def check_auth():
+    if 'admin_id' in session:
+        return jsonify({
+            'authenticated': True,
+            'admin': {
+                'id': session['admin_id'],
+                'username': session['username']
+            }
+        })
+    return jsonify({'authenticated': False})
+
+# ============= Student Routes =============
+
+@app.route('/api/students', methods=['GET'])
+@require_auth
+def get_students():
+    try:
+        batch = request.args.get('batch')
+        course = request.args.get('course')
+        
+        query = supabase.table('students').select('*').eq('status', 'active')
+        
+        if batch:
+            query = query.eq('batch', batch)
+        if course:
+            query = query.eq('course', course)
+        
+        # Order by KL University first, then by batch and roll number
+        response = query.order('batch').order('roll_number').execute()
+        
+        # Sort to prioritize KL University
+        students = sorted(response.data, key=lambda x: (
+            0 if x['batch'] == 'KL University' else 1,
+            x['batch'],
+            x['roll_number']
+        ))
+        
+        return jsonify({'success': True, 'students': students})
+    
+    except Exception as e:
+        print(f"Get students error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/students/stats', methods=['GET'])
+@require_auth
+def get_student_stats():
+    try:
+        response = supabase.table('students').select('batch, course').eq('status', 'active').execute()
+        students = response.data
+        
+        # Calculate statistics
+        batches = list(set(s['batch'] for s in students))
+        courses = list(set(s['course'] for s in students))
+        
+        # Batch distribution
+        by_batch = {}
+        for student in students:
+            batch = student['batch']
+            by_batch[batch] = by_batch.get(batch, 0) + 1
+        
+        batch_distribution = [{'batch': k, 'count': v} for k, v in by_batch.items()]
+        batch_distribution.sort(key=lambda x: (0 if x['batch'] == 'KL University' else 1, x['batch']))
+        
+        # Course distribution
+        by_course = {}
+        for student in students:
+            course = student['course']
+            by_course[course] = by_course.get(course, 0) + 1
+        
+        course_distribution = [{'course': k, 'count': v} for k, v in by_course.items()]
+        
+        return jsonify({
+            'success': True,
+            'batches': batches,
+            'courses': courses,
+            'byBatch': batch_distribution,
+            'byCourse': course_distribution,
+            'totalStudents': len(students)
+        })
+    
+    except Exception as e:
+        print(f"Get stats error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============= Attendance Routes =============
+
+@app.route('/api/attendance/by-date', methods=['GET'])
+@require_auth
+def get_attendance_by_date():
+    try:
+        date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+        batch = request.args.get('batch')
+        
+        # Get all active students
+        student_query = supabase.table('students').select('*').eq('status', 'active')
+        if batch:
+            student_query = student_query.eq('batch', batch)
+        
+        students_response = student_query.order('roll_number').execute()
+        students = students_response.data
+        
+        # Get attendance records for the date
+        attendance_response = supabase.table('attendance').select('*').eq('attendance_date', date).execute()
+        attendance_dict = {a['student_id']: a for a in attendance_response.data}
+        
+        # Combine data
+        result = []
+        for student in students:
+            attendance = attendance_dict.get(student['id'])
+            result.append({
+                'student_id': student['id'],
+                'roll_number': student['roll_number'],
+                'first_name': student['first_name'],
+                'last_name': student['last_name'],
+                'course': student['course'],
+                'batch': student['batch'],
+                'attendance_date': date,
+                'status': attendance['status'] if attendance else None,
+                'remarks': attendance['remarks'] if attendance else None,
+                'attendance_id': attendance['id'] if attendance else None,
+                'marked_at': attendance['marked_at'] if attendance else None
+            })
+        
+        # Sort to prioritize KL University
+        result.sort(key=lambda x: (
+            0 if x['batch'] == 'KL University' else 1,
+            x['batch'],
+            x['roll_number']
+        ))
+        
+        return jsonify({'success': True, 'attendance': result})
+    
+    except Exception as e:
+        print(f"Get attendance error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/attendance/mark', methods=['POST'])
+@require_auth
+def mark_attendance():
+    try:
+        data = request.get_json()
+        attendance_records = data.get('attendance_records', [])
+        date = data.get('attendance_date', datetime.now().strftime('%Y-%m-%d'))
+        
+        if not attendance_records:
+            return jsonify({'success': False, 'error': 'No attendance records provided'}), 400
+        
+        marked_count = 0
+        
+        for record in attendance_records:
+            student_id = record['student_id']
+            status = record['status']
+            remarks = record.get('remarks', '')
+            
+            # Check if attendance already exists
+            existing = supabase.table('attendance').select('id').eq('student_id', student_id).eq('attendance_date', date).execute()
+            
+            if existing.data:
+                # Update existing
+                supabase.table('attendance').update({
+                    'status': status,
+                    'remarks': remarks,
+                    'marked_by': session['admin_id'],
+                    'marked_at': datetime.now().isoformat()
+                }).eq('id', existing.data[0]['id']).execute()
+            else:
+                # Insert new
+                supabase.table('attendance').insert({
+                    'student_id': student_id,
+                    'attendance_date': date,
+                    'status': status,
+                    'remarks': remarks,
+                    'marked_by': session['admin_id'],
+                    'marked_at': datetime.now().isoformat()
+                }).execute()
+            
+            marked_count += 1
+        
+        return jsonify({
+            'success': True,
+            'message': f'Attendance marked for {marked_count} students',
+            'count': marked_count
+        })
+    
+    except Exception as e:
+        print(f"Mark attendance error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============= Reports Routes =============
+
+@app.route('/api/reports/summary', methods=['GET'])
+@require_auth
+def get_attendance_summary():
+    try:
+        start_date = request.args.get('startDate')
+        end_date = request.args.get('endDate')
+        batch = request.args.get('batch')
+        
+        if not start_date or not end_date:
+            return jsonify({'success': False, 'error': 'Start and end dates required'}), 400
+        
+        # Build query
+        query = supabase.table('attendance').select(
+            'id, student_id, attendance_date, status, students(roll_number, first_name, last_name, batch, course)'
+        ).gte('attendance_date', start_date).lte('attendance_date', end_date)
+        
+        response = query.execute()
+        records = response.data
+        
+        # Filter by batch if specified
+        if batch:
+            records = [r for r in records if r['students']['batch'] == batch]
+        
+        # Calculate statistics
+        total_records = len(records)
+        present_count = sum(1 for r in records if r['status'] == 'present')
+        absent_count = sum(1 for r in records if r['status'] == 'absent')
+        
+        # By date
+        by_date = {}
+        for record in records:
+            date = record['attendance_date']
+            if date not in by_date:
+                by_date[date] = {'present': 0, 'absent': 0}
+            by_date[date][record['status']] += 1
+        
+        date_wise = [{'date': k, 'present': v['present'], 'absent': v['absent']} 
+                     for k, v in sorted(by_date.items())]
+        
+        return jsonify({
+            'success': True,
+            'summary': {
+                'totalRecords': total_records,
+                'presentCount': present_count,
+                'absentCount': absent_count,
+                'attendanceRate': round((present_count / total_records * 100) if total_records > 0 else 0, 2),
+                'dateWise': date_wise
+            }
+        })
+    
+    except Exception as e:
+        print(f"Get summary error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============= Dashboard Compatibility Routes =============
+
+@app.route('/api/students/stats/overview', methods=['GET'])
+@require_auth
+def get_dashboard_student_stats():
+    try:
+        # Simple count of active students
+        response = supabase.table('students').select('id').eq('status', 'active').execute()
+        return jsonify({
+            'total': len(response.data)
+        })
+    except Exception as e:
+        print(f"Dashboard student stats error: {e}")
+        return jsonify({'total': 0}), 500
+
+@app.route('/api/attendance/stats/overview', methods=['GET'])
+@require_auth
+def get_dashboard_attendance_stats():
+    try:
+        date = request.args.get('date', datetime.now().strftime('%Y-%m-%d'))
+        
+        # Get total active students (denominator)
+        students_resp = supabase.table('students').select('id').eq('status', 'active').execute()
+        total_students = len(students_resp.data)
+        
+        # Get attendance for date
+        attendance_resp = supabase.table('attendance').select('status').eq('attendance_date', date).execute()
+        
+        present = sum(1 for r in attendance_resp.data if r['status'] == 'present')
+        absent = sum(1 for r in attendance_resp.data if r['status'] == 'absent')
+        
+        percentage = 0
+        if total_students > 0:
+            percentage = round((present / total_students) * 100, 1)
+            
+        return jsonify({
+            'present': present,
+            'absent': absent,
+            'percentage': percentage,
+            'total': total_students
+        })
+    except Exception as e:
+        print(f"Dashboard attendance stats error: {e}")
+        return jsonify({'present': 0, 'absent': 0, 'percentage': 0}), 500
+
+@app.route('/api/reports/trends', methods=['GET'])
+@require_auth
+def get_dashboard_trends():
+    try:
+        days = int(request.args.get('days', 7))
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days-1)
+        
+        start_str = start_date.strftime('%Y-%m-%d')
+        end_str = end_date.strftime('%Y-%m-%d')
+        
+        # Get all attendance in range
+        response = supabase.table('attendance').select('attendance_date, status') \
+            .gte('attendance_date', start_str) \
+            .lte('attendance_date', end_str) \
+            .execute()
+            
+        # Group by date
+        daily_stats = {}
+        # Initialize all dates in range with 0
+        curr = start_date
+        while curr <= end_date:
+            d_str = curr.strftime('%Y-%m-%d')
+            daily_stats[d_str] = {'date': d_str, 'present': 0, 'absent': 0}
+            curr += timedelta(days=1)
+            
+        for record in response.data:
+            d = record['attendance_date']
+            s = record['status']
+            if d in daily_stats:
+                if s == 'present': daily_stats[d]['present'] += 1
+                elif s == 'absent': daily_stats[d]['absent'] += 1
+                
+        return jsonify(list(daily_stats.values()))
+    except Exception as e:
+        print(f"Dashboard trends error: {e}")
+        return jsonify([]), 500
+
+# Error handlers
+@app.errorhandler(404)
+def not_found(e):
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({'success': False, 'error': 'Internal server error'}), 500
+
+if __name__ == '__main__':
+    # For local development
+    app.run(host='0.0.0.0', port=3000, debug=True)
+

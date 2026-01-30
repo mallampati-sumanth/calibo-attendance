@@ -1,0 +1,866 @@
+/* Custom Styles for Student Attendance Tracker */
+
+:root {
+    --calibo-blue: #1e3a8a;
+    --calibo-dark-blue: #0f1f4d;
+    --calibo-light-blue: #3b5998;
+    --primary-color: #1e3a8a;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #3b82f6;
+    --light-color: #f8fafc;
+    --dark-color: #0f172a;
+    --gradient-primary: linear-gradient(135deg, #1e3a8a 0%, #0f1f4d 100%);
+    --gradient-secondary: linear-gradient(135deg, #3b5998 0%, #1e3a8a 100%);
+    --shadow-card: 0 10px 30px rgba(30, 58, 138, 0.15);
+    --shadow-hover: 0 15px 40px rgba(30, 58, 138, 0.25);
+}
+
+body {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+}
+
+/* Modern Card Design */
+.card {
+    border: none;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-card);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-hover);
+}
+
+.card-header {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: 1.5rem;
+    border-radius: 20px 20px 0 0 !important;
+    box-shadow: 0 4px 6px rgba(30, 58, 138, 0.1);
+}
+
+/* Enhanced Mode Toggle */
+.attendance-mode-toggle {
+    background: white;
+    border-radius: 15px;
+    padding: 0.5rem;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.btn-check:checked + .btn-outline-primary {
+    background: var(--gradient-primary);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transform: scale(1.05);
+}
+
+.btn-check:checked + .btn-outline-success {
+    background: var(--gradient-success);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+    transform: scale(1.05);
+}
+
+/* Beautiful Action Buttons */
+.action-buttons {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(5px);
+}
+
+.btn {
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    transition: all 0.3s ease;
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary {
+    background: var(--gradient-primary);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: var(--gradient-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+/* Calibo Theme Badges */
+.badge.bg-primary {
+    background: var(--calibo-blue) !important;
+}
+
+.badge.bg-info {
+    background: var(--calibo-light-blue) !important;
+}
+
+.badge.bg-success {
+    background: #10b981 !important;
+}
+
+.badge.bg-danger {
+    background: #ef4444 !important;
+}
+
+.badge.bg-warning {
+    background: #f59e0b !important;
+    color: #fff !important;
+}
+
+.badge.bg-secondary {
+    background: #64748b !important;
+}
+
+/* Table styling */
+.table-dark {
+    background: var(--gradient-primary) !important;
+}
+
+.table-dark th {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.btn-success {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    box-shadow: 0 4px 15px rgba(86, 171, 47, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ffa8a8 100%);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    color: #333;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Modern Table Design */
+.table-container {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+    margin: 0;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+}
+
+.table tbody tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.table tbody tr:hover {
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+    transform: scale(1.01);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border: none;
+}
+
+/* Enhanced Checkbox Styling */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.form-check:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.form-check-input {
+    width: 1.25em;
+    height: 1.25em;
+    border-radius: 6px;
+    border: 2px solid #ddd;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background: var(--gradient-primary);
+    border-color: transparent;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: scale(1.1);
+}
+
+.form-check-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Simple Checkbox Styling - Clean Minimal Design */
+.simple-checkbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem;
+}
+
+.simple-checkbox .form-check-input {
+    width: 1.8rem;
+    height: 1.8rem;
+    border: 2px solid #dc3545;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background-color: white;
+    margin: 0;
+}
+
+.simple-checkbox .form-check-input:hover {
+    border-color: #b02a37;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+    transform: scale(1.05);
+}
+
+.simple-checkbox .form-check-input:checked {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2);
+}
+
+.simple-checkbox .form-check-input:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.simple-checkbox .form-check-label {
+    display: none;
+}
+
+@keyframes bounceIn {
+    0% { transform: scale(0.3) rotate(0deg); }
+    25% { transform: scale(1.05) rotate(5deg); }
+    50% { transform: scale(0.9) rotate(-5deg); }
+    75% { transform: scale(1.02) rotate(2deg); }
+    100% { transform: scale(1.2) rotate(0deg); }
+}
+
+/* Radio Button Styling */
+.attendance-radio {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.attendance-radio .form-check {
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid transparent;
+    border-radius: 25px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+    margin: 0;
+    min-width: 90px;
+}
+
+.attendance-radio .form-check:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.attendance-radio input[type="radio"]:checked + label {
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.form-check-input[type="radio"]:checked[value="present"] + label {
+    color: #198754;
+}
+
+.form-check-input[type="radio"]:checked[value="absent"] + label {
+    color: #dc3545;
+}
+
+/* Badges */
+.badge {
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+}
+
+.bg-primary {
+    background: var(--gradient-primary) !important;
+}
+
+.bg-success {
+    background: var(--gradient-success) !important;
+}
+
+/* Loading States */
+.spinner-border-sm {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .action-buttons .btn-group {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .attendance-radio {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+}
+
+/* Summary Stats */
+.attendance-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-align: center;
+    margin: 1rem 0;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.attendance-summary span {
+    margin: 0 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+/* Modern Form Inputs */
+.form-control {
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    transform: translateY(-1px);
+}
+
+.form-select {
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: 600;
+}
+
+.nav-link {
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    transform: translateY(-1px);
+}
+
+/* Mobile Offcanvas Menu */
+.offcanvas-start {
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.offcanvas.show {
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.offcanvas-body .nav-link {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.offcanvas-body .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    padding-left: 2rem !important;
+}
+
+.offcanvas-body .nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 0;
+    background: white;
+    transition: height 0.3s ease;
+}
+
+.offcanvas-body .nav-link:hover::before {
+    height: 60%;
+}
+
+/* Content Sections */
+.content-section {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Statistics Cards */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-info,
+.card.bg-warning {
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--primary-color), #0b5ed7) !important;
+}
+
+.card.bg-success {
+    background: linear-gradient(135deg, var(--success-color), #146c43) !important;
+}
+
+.card.bg-info {
+    background: linear-gradient(135deg, var(--info-color), #0aa2c0) !important;
+}
+
+.card.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #e0a800) !important;
+    color: var(--dark-color) !important;
+}
+
+/* Tables */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table th {
+    background-color: var(--light-color);
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 15px 12px;
+}
+
+.table td {
+    border: none;
+    padding: 12px;
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+    transform: scale(1.01);
+}
+
+/* Buttons */
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #0b5ed7);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #146c43);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color), #e0a800);
+    color: var(--dark-color);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #b02a37);
+}
+
+/* Forms */
+.form-control,
+.form-select {
+    border-radius: 10px;
+    border: 1px solid #dce7f0;
+    padding: 12px 15px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    transform: translateY(-1px);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 8px;
+}
+
+/* Modals */
+.modal-content {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 20px 20px 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    border-radius: 0 0 20px 20px;
+}
+
+/* Attendance Status */
+.status-present {
+    background: linear-gradient(135deg, var(--success-color), #146c43);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-absent {
+    background: linear-gradient(135deg, var(--danger-color), #b02a37);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-not-marked {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Radio Buttons for Attendance */
+.attendance-radio {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.attendance-radio .form-check {
+    margin: 0;
+    padding: 0;
+}
+
+.attendance-radio .form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.attendance-radio .form-check-input:checked[value="present"] {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.attendance-radio .form-check-input:checked[value="absent"] {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+.attendance-radio .form-check-label {
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.attendance-radio .form-check-label:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.attendance-radio .form-check-input:checked + .form-check-label {
+    background-color: rgba(13, 110, 253, 0.1);
+    font-weight: 600;
+}
+
+.attendance-radio .text-success {
+    color: var(--success-color) !important;
+}
+
+.attendance-radio .text-danger {
+    color: var(--danger-color) !important;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    border-radius: 15px;
+}
+
+/* Progress Bars */
+.progress {
+    height: 10px;
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+/* Alerts */
+.alert {
+    border: none;
+    border-radius: 15px;
+    padding: 15px 20px;
+}
+
+/* Loading Spinner */
+.spinner-border {
+    border-width: 3px;
+}
+
+/* Charts */
+canvas {
+    border-radius: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 15px;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .btn {
+        font-size: 0.9rem;
+        padding: 8px 15px;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    .modal-dialog {
+        margin: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding: 15px;
+    }
+    
+    .card {
+        margin-bottom: 15px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 8px 6px;
+        font-size: 0.85rem;
+    }
+    
+    .btn-group .btn {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .navbar,
+    .btn,
+    .modal,
+    #loading-spinner {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    .table {
+        font-size: 12px;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --light-color: #343a40;
+        --dark-color: #f8f9fa;
+    }
+    
+    body {
+        background-color: #121212;
+        color: #f8f9fa;
+    }
+    
+    .card {
+        background-color: #1e1e1e;
+        color: #f8f9fa;
+    }
+    
+    .table {
+        color: #f8f9fa;
+    }
+    
+    .table th {
+        background-color: #2d3748;
+    }
+    
+    .modal-content {
+        background-color: #1e1e1e;
+        color: #f8f9fa;
+    }
+}
+
+/* Utility Classes */
+.text-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color), #0b5ed7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.shadow-custom {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.border-radius-custom {
+    border-radius: 15px;
+}
+
+.transition-all {
+    transition: all 0.3s ease;
+}

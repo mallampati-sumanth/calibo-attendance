@@ -1,0 +1,30 @@
+# Fly.io deployment configuration
+app = "student-attendance-tracker"
+primary_region = "dfw"
+
+[env]
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval = "30s"
+    timeout = "5s"
+    method = "get"
+    path = "/api/health"
+
+[mounts]
+  source = "attendance_data"
+  destination = "/app/backend/data"

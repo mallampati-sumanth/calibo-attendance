@@ -1,0 +1,38 @@
+{
+  "name": "student-attendance-tracker",
+  "version": "1.0.0",
+  "description": "A comprehensive student attendance tracking system for training institutes",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "init-db": "node backend/database/init.js",
+    "build": "echo 'Build complete'",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": [
+    "attendance",
+    "education",
+    "student-management",
+    "tracking"
+  ],
+  "author": "Training Institute",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "bcryptjs": "^2.4.3",
+    "express-session": "^1.17.3",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "moment": "^2.29.4",
+    "json2csv": "^5.0.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
