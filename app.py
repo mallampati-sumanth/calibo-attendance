@@ -503,6 +503,8 @@ def get_daily_report(date):
 @require_auth
 def get_monthly_report(year, month):
     try:
+        from calendar import monthrange
+        
         batch = request.args.get('batch')
         course = request.args.get('course')
         
@@ -511,33 +513,53 @@ def get_monthly_report(year, month):
         if month == 12:
             end_date = f"{year}-12-31"
         else:
-            from calendar import monthrange
             last_day = monthrange(year, month)[1]
             end_date = f"{year}-{month:02d}-{last_day}"
         
-        # Get attendance for the month
-        query = supabase.table('attendance').select(
-            '*, students(roll_number, first_name, last_name, batch, course)'
-        ).gte('attendance_date', start_date).lte('attendance_date', end_date)
+        print(f"Monthly report: {year}-{month}, Range: {start_date} to {end_date}, Batch: {batch}, Course: {course}")
         
+        # Get attendance for the month - simplified query without nested select
+        query = supabase.table('attendance').select('*').gte('attendance_date', start_date).lte('attendance_date', end_date)
         response = query.execute()
         records = response.data
         
-        # Filter by batch/course if specified
-        if batch:
-            records = [r for r in records if r['students'] and r['students']['batch'] == batch]
-        if course:
-            records = [r for r in records if r['students'] and r['students']['course'] == course]
+        print(f"Found {len(records)} attendance records")
+        
+        # Get student IDs to fetch student details
+        student_ids = list(set(r['student_id'] for r in records if r.get('student_id')))
+        
+        # Fetch student details
+        students_dict = {}
+        if student_ids:
+            students_response = supabase.table('students').select('*').execute()
+            for student in students_response.data:
+                students_dict[student['id']] = student
+        
+        # Filter records by batch/course and enrich with student data
+        filtered_records = []
+        for record in records:
+            student_id = record.get('student_id')
+            if student_id in students_dict:
+                student = students_dict[student_id]
+                
+                # Apply filters
+                if batch and student['batch'] != batch:
+                    continue
+                if course and student['course'] != course:
+                    continue
+                
+                record['student'] = student
+                filtered_records.append(record)
         
         # Calculate overall stats
-        present = sum(1 for r in records if r['status'] == 'present')
-        absent = sum(1 for r in records if r['status'] == 'absent')
-        total = len(records)
+        present = sum(1 for r in filtered_records if r['status'] == 'present')
+        absent = sum(1 for r in filtered_records if r['status'] == 'absent')
+        total = len(filtered_records)
         percentage = round((present / total * 100) if total > 0 else 0, 1)
         
         # Group by date
         by_date = {}
-        for record in records:
+        for record in filtered_records:
             date = record['attendance_date']
             if date not in by_date:
                 by_date[date] = {'present': 0, 'absent': 0}
@@ -571,6 +593,8 @@ def get_monthly_report(year, month):
     
     except Exception as e:
         print(f"Get monthly report error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/reports/student/<student_id>', methods=['GET'])
