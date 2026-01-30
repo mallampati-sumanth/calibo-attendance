@@ -126,6 +126,11 @@ class AttendanceApp {
                     await window.studentsManager.loadStudents();
                 }
                 break;
+            case 'profile':
+                if (window.profileManager) {
+                    window.profileManager.loadCurrentUsername();
+                }
+                break;
         }
     }
 
