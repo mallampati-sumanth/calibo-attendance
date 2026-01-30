@@ -73,16 +73,31 @@ class ReportsManager {
             // Load students for student report dropdown
             const response = await window.app.api('/api/students');
             const data = await response.json();
-            const students = Array.isArray(data) ? data : (data.students || []);
+            
+            if (!data.success) {
+                console.error('Failed to fetch students:', data.error);
+                return;
+            }
+            
+            const students = data.students || [];
 
             const studentSelect = document.getElementById('report-student');
             if (studentSelect) {
-                students.forEach(student => {
-                    const option = document.createElement('option');
-                    option.value = student.id;
-                    option.textContent = `${student.roll_number} - ${student.first_name} ${student.last_name}`;
-                    studentSelect.appendChild(option);
-                });
+                // Clear existing options except the first one
+                while (studentSelect.options.length > 1) {
+                    studentSelect.remove(1);
+                }
+                
+                if (students.length > 0) {
+                    students.forEach(student => {
+                        const option = document.createElement('option');
+                        option.value = student.id;
+                        option.textContent = `${student.roll_number} - ${student.first_name} ${student.last_name}`;
+                        studentSelect.appendChild(option);
+                    });
+                } else {
+                    console.warn('No active students found');
+                }
             }
 
             // Populate batch dropdowns
