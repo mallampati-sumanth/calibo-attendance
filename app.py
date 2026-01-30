@@ -104,6 +104,93 @@ def check_auth():
         })
     return jsonify({'authenticated': False})
 
+@app.route('/api/admin/change-username', methods=['POST'])
+@require_auth
+def change_username():
+    try:
+        data = request.get_json()
+        new_username = data.get('new_username')
+        password = data.get('password')
+        
+        if not new_username or not password:
+            return jsonify({'success': False, 'error': 'Username and password required'}), 400
+        
+        if len(new_username) < 3:
+            return jsonify({'success': False, 'error': 'Username must be at least 3 characters'}), 400
+        
+        # Get current admin
+        admin_id = session['admin_id']
+        response = supabase.table('admins').select('*').eq('id', admin_id).execute()
+        
+        if not response.data:
+            return jsonify({'success': False, 'error': 'Admin not found'}), 404
+        
+        admin = response.data[0]
+        
+        # Verify password
+        if not check_password_hash(admin['password_hash'], password):
+            return jsonify({'success': False, 'error': 'Invalid password'}), 401
+        
+        # Check if new username already exists
+        existing = supabase.table('admins').select('id').eq('username', new_username).execute()
+        if existing.data and existing.data[0]['id'] != admin_id:
+            return jsonify({'success': False, 'error': 'Username already taken'}), 400
+        
+        # Update username
+        supabase.table('admins').update({
+            'username': new_username
+        }).eq('id', admin_id).execute()
+        
+        # Update session
+        session['username'] = new_username
+        
+        return jsonify({'success': True, 'message': 'Username updated successfully'})
+        
+    except Exception as e:
+        print(f"Change username error: {e}")
+        return jsonify({'success': False, 'error': 'Failed to update username'}), 500
+
+@app.route('/api/admin/change-password', methods=['POST'])
+@require_auth
+def change_password():
+    try:
+        data = request.get_json()
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        
+        if not current_password or not new_password:
+            return jsonify({'success': False, 'error': 'Current and new passwords required'}), 400
+        
+        if len(new_password) < 6:
+            return jsonify({'success': False, 'error': 'New password must be at least 6 characters'}), 400
+        
+        # Get current admin
+        admin_id = session['admin_id']
+        response = supabase.table('admins').select('*').eq('id', admin_id).execute()
+        
+        if not response.data:
+            return jsonify({'success': False, 'error': 'Admin not found'}), 404
+        
+        admin = response.data[0]
+        
+        # Verify current password
+        if not check_password_hash(admin['password_hash'], current_password):
+            return jsonify({'success': False, 'error': 'Current password is incorrect'}), 401
+        
+        # Generate new password hash
+        new_password_hash = generate_password_hash(new_password)
+        
+        # Update password
+        supabase.table('admins').update({
+            'password_hash': new_password_hash
+        }).eq('id', admin_id).execute()
+        
+        return jsonify({'success': True, 'message': 'Password updated successfully'})
+        
+    except Exception as e:
+        print(f"Change password error: {e}")
+        return jsonify({'success': False, 'error': 'Failed to update password'}), 500
+
 # ============= Student Routes =============
 
 @app.route('/api/students', methods=['GET'])
