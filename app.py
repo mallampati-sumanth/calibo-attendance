@@ -440,6 +440,192 @@ def get_attendance_summary():
         print(f"Get summary error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/reports/daily/<date>', methods=['GET'])
+@require_auth
+def get_daily_report(date):
+    try:
+        batch = request.args.get('batch')
+        course = request.args.get('course')
+        
+        # Get attendance for the date
+        query = supabase.table('attendance').select(
+            '*, students(roll_number, first_name, last_name, batch, course)'
+        ).eq('attendance_date', date)
+        
+        response = query.execute()
+        records = response.data
+        
+        # Filter by batch/course if specified
+        if batch:
+            records = [r for r in records if r['students'] and r['students']['batch'] == batch]
+        if course:
+            records = [r for r in records if r['students'] and r['students']['course'] == course]
+        
+        # Calculate stats
+        present = sum(1 for r in records if r['status'] == 'present')
+        absent = sum(1 for r in records if r['status'] == 'absent')
+        total = len(records)
+        percentage = round((present / total * 100) if total > 0 else 0, 1)
+        
+        # Format student data
+        students_data = []
+        for record in records:
+            if record['students']:
+                students_data.append({
+                    'roll_number': record['students']['roll_number'],
+                    'first_name': record['students']['first_name'],
+                    'last_name': record['students']['last_name'],
+                    'batch': record['students']['batch'],
+                    'course': record['students']['course'],
+                    'status': record['status'],
+                    'remarks': record.get('remarks', '')
+                })
+        
+        return jsonify({
+            'success': True,
+            'date': date,
+            'batch': batch or 'All',
+            'course': course or 'All',
+            'stats': {
+                'total': total,
+                'present': present,
+                'absent': absent,
+                'percentage': percentage
+            },
+            'students': students_data
+        })
+    
+    except Exception as e:
+        print(f"Get daily report error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/reports/monthly/<int:year>/<int:month>', methods=['GET'])
+@require_auth
+def get_monthly_report(year, month):
+    try:
+        batch = request.args.get('batch')
+        course = request.args.get('course')
+        
+        # Calculate date range
+        start_date = f"{year}-{month:02d}-01"
+        if month == 12:
+            end_date = f"{year}-12-31"
+        else:
+            from calendar import monthrange
+            last_day = monthrange(year, month)[1]
+            end_date = f"{year}-{month:02d}-{last_day}"
+        
+        # Get attendance for the month
+        query = supabase.table('attendance').select(
+            '*, students(roll_number, first_name, last_name, batch, course)'
+        ).gte('attendance_date', start_date).lte('attendance_date', end_date)
+        
+        response = query.execute()
+        records = response.data
+        
+        # Filter by batch/course if specified
+        if batch:
+            records = [r for r in records if r['students'] and r['students']['batch'] == batch]
+        if course:
+            records = [r for r in records if r['students'] and r['students']['course'] == course]
+        
+        # Calculate overall stats
+        present = sum(1 for r in records if r['status'] == 'present')
+        absent = sum(1 for r in records if r['status'] == 'absent')
+        total = len(records)
+        percentage = round((present / total * 100) if total > 0 else 0, 1)
+        
+        # Group by date
+        by_date = {}
+        for record in records:
+            date = record['attendance_date']
+            if date not in by_date:
+                by_date[date] = {'present': 0, 'absent': 0}
+            by_date[date][record['status']] += 1
+        
+        daily_stats = [
+            {
+                'date': date,
+                'present': stats['present'],
+                'absent': stats['absent'],
+                'total': stats['present'] + stats['absent'],
+                'percentage': round((stats['present'] / (stats['present'] + stats['absent']) * 100) if (stats['present'] + stats['absent']) > 0 else 0, 1)
+            }
+            for date, stats in sorted(by_date.items())
+        ]
+        
+        return jsonify({
+            'success': True,
+            'year': year,
+            'month': month,
+            'batch': batch or 'All',
+            'course': course or 'All',
+            'stats': {
+                'total': total,
+                'present': present,
+                'absent': absent,
+                'percentage': percentage
+            },
+            'daily': daily_stats
+        })
+    
+    except Exception as e:
+        print(f"Get monthly report error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/reports/student/<student_id>', methods=['GET'])
+@require_auth
+def get_student_report(student_id):
+    try:
+        from_date = request.args.get('from_date')
+        to_date = request.args.get('to_date')
+        
+        # Get student info
+        student_response = supabase.table('students').select('*').eq('id', student_id).execute()
+        if not student_response.data:
+            return jsonify({'success': False, 'error': 'Student not found'}), 404
+        
+        student = student_response.data[0]
+        
+        # Get attendance records
+        query = supabase.table('attendance').select('*').eq('student_id', student_id)
+        if from_date:
+            query = query.gte('attendance_date', from_date)
+        if to_date:
+            query = query.lte('attendance_date', to_date)
+        
+        response = query.order('attendance_date', desc=True).execute()
+        records = response.data
+        
+        # Calculate stats
+        present = sum(1 for r in records if r['status'] == 'present')
+        absent = sum(1 for r in records if r['status'] == 'absent')
+        total = len(records)
+        percentage = round((present / total * 100) if total > 0 else 0, 1)
+        
+        return jsonify({
+            'success': True,
+            'student': {
+                'id': student['id'],
+                'roll_number': student['roll_number'],
+                'first_name': student['first_name'],
+                'last_name': student['last_name'],
+                'batch': student['batch'],
+                'course': student['course']
+            },
+            'stats': {
+                'total': total,
+                'present': present,
+                'absent': absent,
+                'percentage': percentage
+            },
+            'records': records
+        })
+    
+    except Exception as e:
+        print(f"Get student report error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ============= Dashboard Compatibility Routes =============
 
 @app.route('/api/students/stats/overview', methods=['GET'])
