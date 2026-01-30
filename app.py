@@ -327,6 +327,15 @@ def mark_attendance():
         if not attendance_records:
             return jsonify({'success': False, 'error': 'No attendance records provided'}), 400
         
+        # Get all existing attendance records for this date
+        existing_attendance = {}
+        try:
+            existing_response = supabase.table('attendance').select('*').eq('attendance_date', date).execute()
+            for record in existing_response.data:
+                existing_attendance[record['student_id']] = record
+        except Exception as e:
+            print(f"Error fetching existing attendance: {e}")
+        
         marked_count = 0
         
         for record in attendance_records:
@@ -337,37 +346,30 @@ def mark_attendance():
                 
                 # Prepare attendance data
                 attendance_data = {
-                    'student_id': student_id,
-                    'attendance_date': date,
                     'status': status,
                     'remarks': remarks,
                     'marked_by': session['admin_id'],
                     'marked_at': datetime.now().isoformat()
                 }
                 
-                # Try to insert - if it fails due to conflict, we'll update
-                try:
-                    supabase.table('attendance').insert(attendance_data).execute()
-                except Exception as insert_error:
-                    # If insert failed (likely due to unique constraint), try to update
-                    error_str = str(insert_error)
-                    if 'duplicate' in error_str.lower() or 'unique' in error_str.lower() or '409' in error_str:
-                        # Record exists, try to update
-                        try:
-                            # Get the existing record ID first
-                            query = supabase.table('attendance').select('id')
-                            query.params['student_id'] = f'eq.{student_id}'
-                            query.params['attendance_date'] = f'eq.{date}'
-                            existing = query.execute()
-                            
-                            if existing.data:
-                                supabase.table('attendance').update(attendance_data).eq('id', existing.data[0]['id']).execute()
-                        except Exception as update_error:
-                            print(f"Error updating attendance: {update_error}")
-                    else:
-                        print(f"Insert error: {insert_error}")
+                if student_id in existing_attendance:
+                    # Update existing record
+                    try:
+                        existing_id = existing_attendance[student_id]['id']
+                        supabase.table('attendance').update(attendance_data).eq('id', existing_id).execute()
+                        marked_count += 1
+                    except Exception as update_error:
+                        print(f"Error updating attendance for student {student_id}: {update_error}")
+                else:
+                    # Insert new record
+                    try:
+                        attendance_data['student_id'] = student_id
+                        attendance_data['attendance_date'] = date
+                        supabase.table('attendance').insert(attendance_data).execute()
+                        marked_count += 1
+                    except Exception as insert_error:
+                        print(f"Error inserting attendance for student {student_id}: {insert_error}")
                 
-                marked_count += 1
             except Exception as record_error:
                 print(f"Error processing record: {record_error}")
                 continue
