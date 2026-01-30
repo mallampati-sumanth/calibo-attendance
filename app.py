@@ -330,33 +330,47 @@ def mark_attendance():
         marked_count = 0
         
         for record in attendance_records:
-            student_id = record['student_id']
-            status = record['status']
-            remarks = record.get('remarks', '')
-            
-            # Check if attendance already exists
-            existing = supabase.table('attendance').select('id').eq('student_id', student_id).eq('attendance_date', date).execute()
-            
-            if existing.data:
-                # Update existing
-                supabase.table('attendance').update({
-                    'status': status,
-                    'remarks': remarks,
-                    'marked_by': session['admin_id'],
-                    'marked_at': datetime.now().isoformat()
-                }).eq('id', existing.data[0]['id']).execute()
-            else:
-                # Insert new
-                supabase.table('attendance').insert({
+            try:
+                student_id = record['student_id']
+                status = record['status']
+                remarks = record.get('remarks', '')
+                
+                # Prepare attendance data
+                attendance_data = {
                     'student_id': student_id,
                     'attendance_date': date,
                     'status': status,
                     'remarks': remarks,
                     'marked_by': session['admin_id'],
                     'marked_at': datetime.now().isoformat()
-                }).execute()
-            
-            marked_count += 1
+                }
+                
+                # Try to insert - if it fails due to conflict, we'll update
+                try:
+                    supabase.table('attendance').insert(attendance_data).execute()
+                except Exception as insert_error:
+                    # If insert failed (likely due to unique constraint), try to update
+                    error_str = str(insert_error)
+                    if 'duplicate' in error_str.lower() or 'unique' in error_str.lower() or '409' in error_str:
+                        # Record exists, try to update
+                        try:
+                            # Get the existing record ID first
+                            query = supabase.table('attendance').select('id')
+                            query.params['student_id'] = f'eq.{student_id}'
+                            query.params['attendance_date'] = f'eq.{date}'
+                            existing = query.execute()
+                            
+                            if existing.data:
+                                supabase.table('attendance').update(attendance_data).eq('id', existing.data[0]['id']).execute()
+                        except Exception as update_error:
+                            print(f"Error updating attendance: {update_error}")
+                    else:
+                        print(f"Insert error: {insert_error}")
+                
+                marked_count += 1
+            except Exception as record_error:
+                print(f"Error processing record: {record_error}")
+                continue
         
         return jsonify({
             'success': True,
