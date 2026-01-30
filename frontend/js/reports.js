@@ -72,7 +72,8 @@ class ReportsManager {
         try {
             // Load students for student report dropdown
             const response = await window.app.api('/api/students');
-            const students = await response.json();
+            const data = await response.json();
+            const students = Array.isArray(data) ? data : (data.students || []);
 
             const studentSelect = document.getElementById('report-student');
             if (studentSelect) {
@@ -159,11 +160,12 @@ class ReportsManager {
             const batch = document.getElementById('report-batch').value;
             const course = document.getElementById('report-course').value;
 
+            const params = new URLSearchParams();
             if (college) params.append('batch', college);
             else if (batch) params.append('batch', batch);
             if (course) params.append('course', course);
 
-            const apiUrl = `/api/reports/monthly/${month}/${year}?${params}`;
+            const apiUrl = `/api/reports/monthly/${year}/${month}?${params}`;
             console.log('API URL:', apiUrl);
 
             const response = await window.app.api(apiUrl);
