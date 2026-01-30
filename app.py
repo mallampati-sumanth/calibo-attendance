@@ -430,14 +430,26 @@ def get_attendance_summary():
 @require_auth
 def get_dashboard_student_stats():
     try:
-        # Simple count of active students
-        response = supabase.table('students').select('id').eq('status', 'active').execute()
+        # Get all active students
+        response = supabase.table('students').select('*').eq('status', 'active').execute()
+        students = response.data
+        
+        # Calculate batch distribution
+        by_batch = {}
+        for student in students:
+            batch = student['batch']
+            by_batch[batch] = by_batch.get(batch, 0) + 1
+        
+        batch_distribution = [{'batch': k, 'count': v} for k, v in by_batch.items()]
+        batch_distribution.sort(key=lambda x: (0 if x['batch'] == 'KL University' else 1, x['batch']))
+        
         return jsonify({
-            'total': len(response.data)
+            'total': len(students),
+            'byBatch': batch_distribution
         })
     except Exception as e:
         print(f"Dashboard student stats error: {e}")
-        return jsonify({'total': 0}), 500
+        return jsonify({'total': 0, 'byBatch': []}), 500
 
 @app.route('/api/attendance/stats/overview', methods=['GET'])
 @require_auth

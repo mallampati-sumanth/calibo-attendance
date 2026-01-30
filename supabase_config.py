@@ -66,7 +66,8 @@ class SupabaseQueryBuilder:
         return self
 
     def eq(self, column, value):
-        self.params[column] = f"eq.{value}"
+        # Properly format as column=eq.value (not separate params)
+        self.params[f"{column}"] = f"eq.{value}"
         return self
     
     def gte(self, column, value):

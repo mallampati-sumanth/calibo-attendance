@@ -6,6 +6,21 @@ class AuthManager {
 
     init() {
         this.bindLoginForm();
+        this.bindPasswordToggle();
+    }
+
+    bindPasswordToggle() {
+        const toggleBtn = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password');
+        const passwordIcon = document.getElementById('password-icon');
+
+        if (toggleBtn && passwordInput && passwordIcon) {
+            toggleBtn.addEventListener('click', () => {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                passwordIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+        }
     }
 
     bindLoginForm() {
