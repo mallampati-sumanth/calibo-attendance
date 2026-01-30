@@ -521,9 +521,26 @@ def get_monthly_report(year, month):
         # Get attendance for the month - simplified query without nested select
         query = supabase.table('attendance').select('*').gte('attendance_date', start_date).lte('attendance_date', end_date)
         response = query.execute()
-        records = response.data
+        records = response.data or []
         
         print(f"Found {len(records)} attendance records")
+        
+        # If no records, return empty report
+        if not records:
+            return jsonify({
+                'success': True,
+                'year': year,
+                'month': month,
+                'batch': batch or 'All',
+                'course': course or 'All',
+                'stats': {
+                    'total': 0,
+                    'present': 0,
+                    'absent': 0,
+                    'percentage': 0
+                },
+                'daily': []
+            })
         
         # Get student IDs to fetch student details
         student_ids = list(set(r['student_id'] for r in records if r.get('student_id')))
