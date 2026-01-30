@@ -124,7 +124,7 @@ class AttendanceManager {
             
             if (allMarked && attendanceData.length > 0) {
                 window.app.showAlert(
-                    `⚠️ Attendance already marked for ${batch || 'all students'} on ${date}. Viewing existing records.`,
+                    `Attendance already marked for ${batch || 'all students'} on ${date}. Viewing existing records.`,
                     'info',
                     5000
                 );
@@ -134,7 +134,7 @@ class AttendanceManager {
             this.updateSaveButtonState();
 
         } catch (error) {
-            console.error('❌ Failed to load attendance:', error);
+            console.error('Failed to load attendance:', error);
             window.app.showAlert('Failed to load attendance data: ' + error.message, 'danger');
             
             // Show error state in table
@@ -412,7 +412,7 @@ class AttendanceManager {
                 const absentCount = attendanceRecords.filter(r => r.status === 'absent').length;
                 
                 window.app.showAlert(
-                    `✅ Attendance saved! Present: ${presentCount}, Absent: ${absentCount}`, 
+                    `Attendance saved! Present: ${presentCount}, Absent: ${absentCount}`, 
                     'success',
                     3000
                 );
@@ -424,7 +424,7 @@ class AttendanceManager {
             }
 
         } catch (error) {
-            console.error('❌ Save attendance error:', error);
+            console.error('Save attendance error:', error);
             window.app.showAlert('Failed to save attendance: ' + error.message, 'danger');
         } finally {
             // Restore button state

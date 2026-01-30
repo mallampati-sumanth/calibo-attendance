@@ -804,20 +804,10 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
                     .then(registration => {
-                        console.log('✅ Service Worker registered successfully:', registration.scope);
-                        
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('🔄 New version available! Reload to update.');
-                                }
-                            });
-                        });
+                        // Service worker registered successfully
                     })
                     .catch(error => {
-                        console.log('❌ Service Worker registration failed:', error);
+                        // Service worker registration failed
                     });
             });
 
@@ -826,14 +816,9 @@
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
-                console.log('📱 App can be installed');
-                
-                // Show install button/banner if needed
-                // You can create a custom install UI here
             });
 
             window.addEventListener('appinstalled', () => {
-                console.log('✅ App installed successfully');
                 deferredPrompt = null;
             });
         }

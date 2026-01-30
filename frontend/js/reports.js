@@ -151,7 +151,6 @@ class ReportsManager {
 
     async generateMonthlyReport() {
         try {
-            console.log('📊 Generating monthly report...');
             window.app.showSpinner();
 
             const month = document.getElementById('report-month').value;
@@ -160,9 +159,6 @@ class ReportsManager {
             const batch = document.getElementById('report-batch').value;
             const course = document.getElementById('report-course').value;
 
-            console.log('Report params:', { month, year, college, batch, course });
-
-            const params = new URLSearchParams();
             if (college) params.append('batch', college);
             else if (batch) params.append('batch', batch);
             if (course) params.append('course', course);
@@ -185,7 +181,7 @@ class ReportsManager {
             window.app.showAlert('Monthly report generated successfully!', 'success', 3000);
 
         } catch (error) {
-            console.error('❌ Failed to generate monthly report:', error);
+            console.error('Failed to generate monthly report:', error);
             window.app.showAlert('Failed to generate monthly report: ' + error.message, 'danger');
         } finally {
             window.app.hideSpinner();
@@ -194,7 +190,6 @@ class ReportsManager {
 
     async generateDailyReport() {
         try {
-            console.log('📅 Generating daily report...');
             window.app.showSpinner();
 
             const date = document.getElementById('daily-report-date').value;
@@ -233,7 +228,7 @@ class ReportsManager {
             window.app.showAlert('Daily report generated successfully!', 'success', 3000);
 
         } catch (error) {
-            console.error('❌ Failed to generate daily report:', error);
+            console.error('Failed to generate daily report:', error);
             window.app.showAlert('Failed to generate daily report: ' + error.message, 'danger');
         } finally {
             window.app.hideSpinner();
@@ -242,7 +237,6 @@ class ReportsManager {
 
     async generateStudentReport() {
         try {
-            console.log('👤 Generating student report...');
             window.app.showSpinner();
 
             const studentId = document.getElementById('report-student').value;
@@ -278,7 +272,7 @@ class ReportsManager {
             window.app.showAlert('Student report generated successfully!', 'success', 3000);
 
         } catch (error) {
-            console.error('❌ Failed to generate student report:', error);
+            console.error('Failed to generate student report:', error);
             window.app.showAlert('Failed to generate student report: ' + error.message, 'danger');
         } finally {
             window.app.hideSpinner();

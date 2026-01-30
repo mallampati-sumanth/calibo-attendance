@@ -54,7 +54,7 @@ class ProfileManager {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                window.app.showAlert('✅ Username updated successfully! Please login again.', 'success');
+                window.app.showAlert('Username updated successfully! Please login again.', 'success');
                 
                 // Update display
                 document.getElementById('username-display').textContent = newUsername;
@@ -110,7 +110,7 @@ class ProfileManager {
             const result = await response.json();
 
             if (response.ok && result.success) {
-                window.app.showAlert('✅ Password updated successfully!', 'success');
+                window.app.showAlert('Password updated successfully!', 'success');
                 
                 // Clear form
                 document.getElementById('change-password-form').reset();
