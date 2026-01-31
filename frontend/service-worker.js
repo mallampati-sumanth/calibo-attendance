@@ -1,5 +1,5 @@
 // Service Worker for Calibo Attendance Tracker PWA
-const CACHE_NAME = 'calibo-attendance-v3';
+const CACHE_NAME = 'calibo-attendance-v4';
 const urlsToCache = [
   '/',
   '/index.html',

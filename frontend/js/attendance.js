@@ -194,14 +194,6 @@ class AttendanceManager {
                     <td><strong>${student.roll_number}</strong></td>
                     <td>${student.first_name} ${student.last_name}</td>
                     <td>
-                        <span class="badge ${student.batch === 'KL University' ? 'bg-primary' : 'bg-info'}">
-                            ${student.batch || 'N/A'}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge bg-success">${student.course || 'Calibo Training'}</span>
-                    </td>
-                    <td>
                         <div class="form-check simple-checkbox">
                             <input class="form-check-input student-checkbox" type="checkbox" 
                                    id="absent_${studentId}" value="${studentId}"
@@ -210,6 +202,14 @@ class AttendanceManager {
                                    ${readOnly ? 'disabled' : ''}
                                    title="${readOnly ? 'Already marked' : 'Mark as Absent'}">
                         </div>
+                    </td>
+                    <td>
+                        <span class="badge ${student.batch === 'KL University' ? 'bg-primary' : 'bg-info'}">
+                            ${student.batch || 'N/A'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-success">${student.course || 'Calibo Training'}</span>
                     </td>
                     <td>
                         <input type="text" class="form-control form-control-sm" 
