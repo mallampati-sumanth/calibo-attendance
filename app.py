@@ -447,39 +447,76 @@ def get_daily_report(date):
         batch = request.args.get('batch')
         course = request.args.get('course')
         
+        print(f"Daily report: {date}, Batch: {batch}, Course: {course}")
+        
         # Get attendance for the date
-        query = supabase.table('attendance').select(
-            '*, students(roll_number, first_name, last_name, batch, course)'
-        ).eq('attendance_date', date)
-        
+        query = supabase.table('attendance').select('*').eq('attendance_date', date)
         response = query.execute()
-        records = response.data
+        records = response.data or []
         
-        # Filter by batch/course if specified
-        if batch:
-            records = [r for r in records if r['students'] and r['students']['batch'] == batch]
-        if course:
-            records = [r for r in records if r['students'] and r['students']['course'] == course]
+        print(f"Found {len(records)} attendance records")
+        
+        if not records:
+            return jsonify({
+                'success': True,
+                'date': date,
+                'batch': batch or 'All',
+                'course': course or 'All',
+                'stats': {
+                    'total': 0,
+                    'present': 0,
+                    'absent': 0,
+                    'percentage': 0
+                },
+                'students': []
+            })
+        
+        # Get student IDs to fetch student details
+        student_ids = list(set(r['student_id'] for r in records if r.get('student_id')))
+        
+        # Fetch student details
+        students_dict = {}
+        if student_ids:
+            students_response = supabase.table('students').select('*').execute()
+            for student in students_response.data:
+                students_dict[student['id']] = student
+        
+        # Filter and enrich records with student data
+        filtered_records = []
+        for record in records:
+            student_id = record.get('student_id')
+            if student_id in students_dict:
+                student = students_dict[student_id]
+                
+                # Apply filters
+                if batch and student['batch'] != batch:
+                    continue
+                if course and student['course'] != course:
+                    continue
+                
+                filtered_records.append({
+                    'record': record,
+                    'student': student
+                })
         
         # Calculate stats
-        present = sum(1 for r in records if r['status'] == 'present')
-        absent = sum(1 for r in records if r['status'] == 'absent')
-        total = len(records)
+        present = sum(1 for r in filtered_records if r['record']['status'] == 'present')
+        absent = sum(1 for r in filtered_records if r['record']['status'] == 'absent')
+        total = len(filtered_records)
         percentage = round((present / total * 100) if total > 0 else 0, 1)
         
         # Format student data
         students_data = []
-        for record in records:
-            if record['students']:
-                students_data.append({
-                    'roll_number': record['students']['roll_number'],
-                    'first_name': record['students']['first_name'],
-                    'last_name': record['students']['last_name'],
-                    'batch': record['students']['batch'],
-                    'course': record['students']['course'],
-                    'status': record['status'],
-                    'remarks': record.get('remarks', '')
-                })
+        for item in filtered_records:
+            students_data.append({
+                'roll_number': item['student']['roll_number'],
+                'first_name': item['student']['first_name'],
+                'last_name': item['student']['last_name'],
+                'batch': item['student']['batch'],
+                'course': item['student']['course'],
+                'status': item['record']['status'],
+                'remarks': item['record'].get('remarks', '')
+            })
         
         return jsonify({
             'success': True,
@@ -497,6 +534,8 @@ def get_daily_report(date):
     
     except Exception as e:
         print(f"Get daily report error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/reports/monthly/<int:year>/<int:month>', methods=['GET'])
