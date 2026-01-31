@@ -191,7 +191,11 @@ class ReportsManager {
             }
 
             const reportData = await response.json();
-            console.log('Report data received:', reportData);
+            console.log('Monthly report data received:', reportData);
+
+            if (!reportData.success) {
+                throw new Error(reportData.error || 'Failed to generate report');
+            }
 
             this.renderMonthlyReport(reportData, college || batch);
             document.getElementById('export-monthly-report').disabled = false;
@@ -238,7 +242,11 @@ class ReportsManager {
             }
 
             const reportData = await response.json();
-            console.log('Report data received:', reportData);
+            console.log('Daily report data received:', reportData);
+
+            if (!reportData.success) {
+                throw new Error(reportData.error || 'Failed to generate report');
+            }
 
             this.renderDailyReport(reportData, college || batch);
             document.getElementById('export-daily-report').disabled = false;
@@ -299,29 +307,24 @@ class ReportsManager {
     renderMonthlyReport(data, collegeFilter = '') {
         const container = document.getElementById('monthly-report-results');
         
-        if (!data.students || data.students.length === 0) {
-            container.innerHTML = '<div class="alert alert-info">No data found for the selected criteria.</div>';
+        if (!data.daily || data.daily.length === 0) {
+            container.innerHTML = '<div class="alert alert-info">No attendance data found for the selected month.</div>';
             return;
         }
 
-        // Calculate college-wise statistics
-        const totalPresent = data.students.reduce((sum, s) => sum + s.present_days, 0);
-        const totalAbsent = data.students.reduce((sum, s) => sum + s.absent_days, 0);
         const collegeTitle = collegeFilter ? ` - ${collegeFilter}` : '';
+        const stats = data.stats || {};
 
         let html = `
             <div class="row mb-3">
                 <div class="col-md-12">
                     <h5>Monthly Report${collegeTitle} - ${this.getMonthName(data.month)} ${data.year}</h5>
-                    <p class="text-muted">
-                        Working Days: ${data.working_days} | 
-                        Total Students: ${data.summary.total_students} | 
-                        Average Attendance: ${data.summary.avg_attendance}%
-                    </p>
-                    <div class="alert alert-info">
-                        <strong>Summary:</strong> 
-                        Total Present: <span class="badge bg-success">${totalPresent}</span> | 
-                        Total Absent: <span class="badge bg-danger">${totalAbsent}</span>
+                    <div class="alert alert-success">
+                        <strong>Overall Statistics:</strong><br>
+                        Total Records: <span class="badge bg-primary">${stats.total || 0}</span> | 
+                        Present: <span class="badge bg-success">${stats.present || 0}</span> | 
+                        Absent: <span class="badge bg-danger">${stats.absent || 0}</span> | 
+                        Attendance Rate: <span class="badge bg-info">${stats.percentage || 0}%</span>
                     </div>
                 </div>
             </div>
@@ -329,10 +332,7 @@ class ReportsManager {
                 <table class="table table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th>Roll No.</th>
-                            <th>Name</th>
-                            <th>Batch</th>
-                            <th>Course</th>
+                            <th>Date</th>
                             <th>Present</th>
                             <th>Absent</th>
                             <th>Total</th>
@@ -342,18 +342,15 @@ class ReportsManager {
                     <tbody>
         `;
 
-        data.students.forEach(student => {
-            const attendanceClass = this.getAttendanceClass(student.attendance_percentage);
+        data.daily.forEach(day => {
+            const attendanceClass = this.getAttendanceClass(day.percentage);
             html += `
                 <tr>
-                    <td>${student.roll_number}</td>
-                    <td>${student.first_name} ${student.last_name}</td>
-                    <td><span class="badge bg-secondary">${student.batch || 'N/A'}</span></td>
-                    <td><span class="badge bg-info">${student.course || 'N/A'}</span></td>
-                    <td><span class="text-success">${student.present_days}</span></td>
-                    <td><span class="text-danger">${student.absent_days}</span></td>
-                    <td>${student.total_marked_days}</td>
-                    <td><span class="badge bg-${attendanceClass}">${student.attendance_percentage}%</span></td>
+                    <td><strong>${window.app.formatDate(day.date)}</strong></td>
+                    <td><span class="badge bg-success">${day.present}</span></td>
+                    <td><span class="badge bg-danger">${day.absent}</span></td>
+                    <td><span class="badge bg-primary">${day.total}</span></td>
+                    <td><span class="badge bg-${attendanceClass}">${day.percentage}%</span></td>
                 </tr>
             `;
         });
