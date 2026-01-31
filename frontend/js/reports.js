@@ -371,6 +371,7 @@ class ReportsManager {
         }
 
         const collegeTitle = collegeFilter ? ` - ${collegeFilter}` : '';
+        const stats = data.stats || data.summary || {};
 
         let html = `
             <div class="row mb-3">
@@ -378,10 +379,10 @@ class ReportsManager {
                     <h5>Daily Report${collegeTitle} - ${window.app.formatDate(data.date)}</h5>
                     <div class="alert alert-success">
                         <strong>Attendance Summary:</strong><br>
-                        Total Students: <span class="badge bg-primary">${data.summary.total}</span> | 
-                        Present: <span class="badge bg-success">${data.summary.present}</span> | 
-                        Absent: <span class="badge bg-danger">${data.summary.absent}</span> | 
-                        Attendance Rate: <span class="badge bg-info">${data.summary.attendance_percentage}%</span>
+                        Total Students: <span class="badge bg-primary">${stats.total || 0}</span> | 
+                        Present: <span class="badge bg-success">${stats.present || 0}</span> | 
+                        Absent: <span class="badge bg-danger">${stats.absent || 0}</span> | 
+                        Attendance Rate: <span class="badge bg-info">${stats.percentage || 0}%</span>
                     </div>
                 </div>
             </div>
